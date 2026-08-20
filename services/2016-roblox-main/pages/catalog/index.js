@@ -24,7 +24,7 @@ const catalogCss = `
           .navbar-wrapper-main .navbar [class*="col-"] { position: relative; min-height: 1px; padding-left: 12px; padding-right: 12px; }
           .navbar-wrapper-main .navbar input.form-control { margin: 0; }
           .catalog-one-file-page { margin-top: 0; font-family: 'HCo Gotham SSm', 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 16px; }
-          .catalog-one-file-page { min-height: 100vh; background: #e3e3e3; color: #393b3d; }
+          .catalog-one-file-page { min-height: 100vh; background: #fff; color: #393b3d; }
           .catalog-one-file-page .container-main { margin-top: 0; }
           .catalog-one-file-page .content { max-width: 1240px; margin: 0 auto; padding: 0 12px 40px; background: transparent; }
           .catalog-one-file-page .catalog-ad img { display: block; width: 100%; height: auto; margin: 0 auto; }
@@ -996,10 +996,10 @@ const CatalogPage = () => {
         <Head>
           <meta name="description" content="Browse the Roblox catalog." />
           <style>{`
-            body { background: #e3e3e3 !important; }
+            body { background: #fff !important; }
             #__next > div > .navbar-wrapper-main { margin-bottom: 0 !important; }
             #__next > div > [class^="fakeAlert-"] { display: none !important; height: 0 !important; }
-            .catalog-host { display: block; min-height: 100vh; padding-top: 40px; background: #e3e3e3; }
+            .catalog-host { display: block; min-height: 100vh; padding-top: 40px; background: #fff; }
             @media (max-width: 991px) {
               .catalog-host { padding-top: 98px; }
             }
