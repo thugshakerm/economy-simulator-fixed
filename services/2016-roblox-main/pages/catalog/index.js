@@ -5,8 +5,6 @@ import thumbnailStore from "../../stores/thumbnailStore";
 import { getItemUrl } from "../../services/catalog";
 import Link from "../../components/link";
 
-// These are the original 2020 bundles used by the archived catalog and style
-// guide. They are loaded directly so this page remains a one-file drop-in.
 const referenceStylesheets = [
   "https://static.rbxcdn.com/css/leanbase___3678d89e5ec3f4d8c65d863691f31de2_m.css/fetch",
   "https://static.rbxcdn.com/css/page___939c7ccb41b37d084d6f1fc38ab7944a_m.css/fetch",
@@ -16,9 +14,6 @@ const referenceStylesheets = [
   "https://css.rbxcdn.com/3f27251ce64d1aedcaabe204116653a48c5faa3bf006fa2aa180b29f48e528c3.css",
 ];
 
-// This is the category model from the existing catalog implementation. The
-// page keeps its original click data while presenting it with the 2020 panel
-// and accordion markup.
 const navigationItems = [
   {
     name: "Featured",
@@ -459,9 +454,17 @@ const CatalogSidebar = () => {
 const CatalogMobileSearchOptions = ({ open, onClose }) => {
   const store = CatalogPageStore.useContainer();
   const [tab, setTab] = useState("category");
+  const [openCategory, setOpenCategory] = useState(null);
+
   const isSelected = (clickData) => {
     const [category, subCategory] = clickData.split(",");
     return store.category === category && (store.subCategory || "") === (subCategory || "");
+  };
+
+  const select = (clickData) => {
+    const [category, subCategory] = clickData.split(",");
+    store.setCategory(category);
+    store.setSubCategory(subCategory || "");
   };
 
   return (
@@ -495,37 +498,57 @@ const CatalogMobileSearchOptions = ({ open, onClose }) => {
             {tab === "category" && (
               <div id="category-tab" className="section-content tab-pane active">
                 <ul className="panel-group">
-                  {navigationItems.filter((item) => item.name !== "separator").map((item) => (
-                    <li className="panel panel-default" key={item.name}>
-                      <a className="panel-heading" href="#" onClick={(event) => event.preventDefault()}>
-                        {item.children && item.children.children.some(([, clickData]) => isSelected(clickData)) && <span className="icon-checkmark-blue selected-icon" />}
-                        {item.name === "All Categories" ? "All Categories" : item.name}
-                        {item.children && <span className="icon-down-16x16 arrow-icon" />}
-                      </a>
-                      {item.children && (
-                        <ul>
-                          {item.children.children.map(([label, clickData]) => (
-                            <li className="radio top-border" key={label}>
-                              <input
-                                id={`mobile-${item.name}-${label}`.replace(/\s+/g, "-")}
-                                type="radio"
-                                name="mobile-catalog-category"
-                                checked={isSelected(clickData)}
-                                onChange={() => {
-                                  const [category, subCategory] = clickData.split(",");
-                                  store.setCategory(category);
-                                  store.setSubCategory(subCategory || "");
-                                }}
-                              />
-                              <label htmlFor={`mobile-${item.name}-${label}`.replace(/\s+/g, "-")}>
-                                {label}
-                              </label>
-                            </li>
-                          ))}
-                        </ul>
-                      )}
-                    </li>
-                  ))}
+                  {navigationItems.filter((item) => item.name !== "separator").map((item) => {
+                    const hasChildren = Boolean(item.children);
+                    const expanded = openCategory === item.name;
+                    const selected = hasChildren
+                      ? item.children.children.some(([, clickData]) => isSelected(clickData))
+                      : isSelected(item.clickData);
+                    return (
+                      <li className="panel panel-default" key={item.name}>
+                        <a
+                          className={`panel-heading${selected ? " font-bold" : ""}`}
+                          href={`#mobile-${item.name}`}
+                          onClick={(event) => {
+                            event.preventDefault();
+                            if (hasChildren) {
+                              setOpenCategory(expanded ? null : item.name);
+                            } else {
+                              select(item.clickData);
+                            }
+                          }}
+                        >
+                          {selected && <span className="icon-checkmark-blue selected-icon" />}
+                          {item.name === "All Categories" ? "All Categories" : item.name}
+                          {hasChildren && <span className={`${expanded ? "icon-up-16x16" : "icon-down-16x16"} arrow-icon`} />}
+                        </a>
+                        {hasChildren && (
+                          <div
+                            id={`mobile-${item.name}`}
+                            className={`panel-collapse collapse${expanded ? " in show" : ""}`}
+                            role="tabpanel"
+                          >
+                            <ul>
+                              {item.children.children.map(([label, clickData]) => (
+                                <li className="radio top-border" key={label}>
+                                  <input
+                                    id={`mobile-${item.name}-${label}`.replace(/\s+/g, "-")}
+                                    type="radio"
+                                    name="mobile-catalog-category"
+                                    checked={isSelected(clickData)}
+                                    onChange={() => select(clickData)}
+                                  />
+                                  <label htmlFor={`mobile-${item.name}-${label}`.replace(/\s+/g, "-")}>
+                                    {label}
+                                  </label>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                      </li>
+                    );
+                  })}
                 </ul>
               </div>
             )}
