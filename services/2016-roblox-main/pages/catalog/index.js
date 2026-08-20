@@ -377,6 +377,12 @@ const CatalogSidebar = () => {
     store.setSubCategory(subCategory || "");
   };
 
+  const isSelected = (clickData) => {
+    if (!clickData) return false;
+    const [category, subCategory] = clickData.split(",");
+    return store.category === category && (store.subCategory || "") === (subCategory || "");
+  };
+
   return (
     <div id="search-options" className="search-options">
       <form className="border-right search-options-form" role="form" noValidate>
@@ -426,7 +432,7 @@ const CatalogSidebar = () => {
                           <li className="top-border" key={label}>
                             <a
                               href="#"
-                              className="small text menu-link text-link-secondary"
+                              className={`small text menu-link text-link-secondary${isSelected(clickData) ? " active" : ""}`}
                               onClick={(event) => {
                                 event.preventDefault();
                                 select(clickData);
@@ -453,6 +459,10 @@ const CatalogSidebar = () => {
 const CatalogMobileSearchOptions = ({ open, onClose }) => {
   const store = CatalogPageStore.useContainer();
   const [tab, setTab] = useState("category");
+  const isSelected = (clickData) => {
+    const [category, subCategory] = clickData.split(",");
+    return store.category === category && (store.subCategory || "") === (subCategory || "");
+  };
 
   return (
     <div
@@ -488,6 +498,7 @@ const CatalogMobileSearchOptions = ({ open, onClose }) => {
                   {navigationItems.filter((item) => item.name !== "separator").map((item) => (
                     <li className="panel panel-default" key={item.name}>
                       <a className="panel-heading" href="#" onClick={(event) => event.preventDefault()}>
+                        {item.children && item.children.children.some(([, clickData]) => isSelected(clickData)) && <span className="icon-checkmark-blue selected-icon" />}
                         {item.name === "All Categories" ? "All Categories" : item.name}
                         {item.children && <span className="icon-down-16x16 arrow-icon" />}
                       </a>
@@ -499,6 +510,7 @@ const CatalogMobileSearchOptions = ({ open, onClose }) => {
                                 id={`mobile-${item.name}-${label}`.replace(/\s+/g, "-")}
                                 type="radio"
                                 name="mobile-catalog-category"
+                                checked={isSelected(clickData)}
                                 onChange={() => {
                                   const [category, subCategory] = clickData.split(",");
                                   store.setCategory(category);
