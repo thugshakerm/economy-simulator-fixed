@@ -47,16 +47,15 @@ export const getProductInfoLegacy = async (assetId) => {
 }
 
 export const getItemDetails = async (assetIdArray) => {
-  if (assetIdArray.length === 0) return {data:{data: []}}
-  while (true) {
+  if (assetIdArray.length === 0) return { data: { data: [] } };
+  let lastError;
+  for (let attempt = 0; attempt < 3; attempt++) {
     try {
       const res = await request('POST', getFullUrl('catalog', '/v1/catalog/items/details'), {
-        items: assetIdArray.map(v => {
-          return {
-            itemType: 'Asset',
-            id: v,
-          }
-        })
+        items: assetIdArray.map(v => ({
+          itemType: 'Asset',
+          id: v,
+        }))
       });
       for (const item of res.data.data) {
         if (typeof item.isForSale === 'undefined') {
@@ -64,15 +63,13 @@ export const getItemDetails = async (assetIdArray) => {
         }
       }
       return res;
-    } catch (e) {
-      // @ts-ignore
-      if (e.response && e.response.status === 429 && process.browser) {
-        await new Promise((res) => setTimeout(res, 2500));
-        continue;
-      }
-      throw e;
+    } catch (error) {
+      lastError = error;
+      if (!error.response || error.response.status !== 429 || attempt === 2) throw error;
+      await new Promise(resolve => setTimeout(resolve, 2500));
     }
   }
+  throw lastError;
 }
 
 export const getRecommendations = ({ assetId, assetTypeId, limit }) => {

@@ -37,6 +37,7 @@ const request = async (method, url, data) => {
       data: data,
       headers: headers,
       maxRedirects: 0,
+      timeout: 15000,
     });
     return result;
   } catch (e) {
