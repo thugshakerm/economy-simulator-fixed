@@ -982,7 +982,7 @@ const CatalogContent = () => {
       {referenceStylesheets.map((href) => <link rel="stylesheet" href={href} key={href} />)}
       <style>{catalogCss}</style>
       <PriceContext.Provider value={priceContext}>
-      <div id="catalog-one-file-page" className="catalog-one-file-page rbx-body light-theme gotham-font">
+      <div id="catalog-one-file-page" className="catalog-one-file-page rbx-body light-theme gotham-font" style={{ backgroundColor: '#fff' }}>
         <div className="container-main full-screen touch">
           <div className="content">
             <CatalogAd />
@@ -1037,7 +1037,7 @@ const CatalogPage = () => {
             }
           `}</style>
         </Head>
-        <div ref={host} className="catalog-host">
+        <div ref={host} className="catalog-host" style={{ backgroundColor: '#fff' }}>
           {shadow && createPortal(<CatalogContent />, shadow)}
         </div>
       </>
