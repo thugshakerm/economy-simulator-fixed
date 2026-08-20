@@ -881,7 +881,6 @@ const CatalogResults = () => {
     <div className="catalog-results">
       <h3 className="featured-items-heading">
         <span className="line-height">{title}</span>
-        <a className="btn-growth-md buy-robux" href="/transactions">Buy Robux</a>
       </h3>
       <div>
         <div className="breadcrumbs">
@@ -951,7 +950,6 @@ const CatalogContent = () => {
                     <div id="main-view">
                       <div className="search-bars">
                         <h1 className="heading"><a href="/catalog">Catalog</a></h1>
-                        <a className="btn-growth-md buy-robux" href="/transactions">Buy Robux</a>
                         <CatalogSearch onOpenMobile={setMobileOptionsOpen} />
                       </div>
                       <CatalogResults />
