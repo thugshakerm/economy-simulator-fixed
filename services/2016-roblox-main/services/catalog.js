@@ -24,8 +24,56 @@ export const getItemUrl = ({ assetId, name }) => {
   return `/catalog/${assetId}/${itemNameToEncodedName(name)}`;
 }
 
+const categoryIds = {
+  all: 1,
+  featured: 0,
+  collectibles: 2,
+  accessories: 11,
+  clothing: 3,
+  null: 3,
+  bodyparts: 4,
+  gear: 5,
+};
+
+const subcategoryIds = {
+  all: 0,
+  items: 0,
+  hats: 0,
+  accessories: 0,
+  faces: 10,
+  face: 10,
+  packages: 37,
+  shirts: 12,
+  shirt: 12,
+  teeshirt: 13,
+  tshirts: 13,
+  pants: 14,
+  gear: 0,
+  building: 8,
+  explosive: 3,
+  melee: 1,
+  musical: 6,
+  navigation: 5,
+  powerup: 4,
+  ranged: 2,
+  social: 7,
+  transport: 9,
+};
+
+const getCategoryId = (category) => {
+  const value = String(category || '').toLowerCase().trim();
+  return typeof categoryIds[value] === 'number' ? categoryIds[value] : category;
+};
+
+const getSubcategoryId = (subcategory) => {
+  const value = String(subcategory || '').toLowerCase().trim();
+  return typeof subcategoryIds[value] === 'number' ? subcategoryIds[value] : subcategory;
+};
+
 export const searchCatalog = ({ category, subCategory, query, limit, cursor, sort, creatorType, creatorId }) => {
-  let url = '/v1/search/items?category=' + category + '&limit=' + limit + '&sortType=' + sort;
+  const categoryId = getCategoryId(category);
+  const subcategoryId = getSubcategoryId(subCategory);
+  let url = '/v1/search/items?category=' + categoryId + '&limit=' + limit + '&sortType=' + sort;
   if (cursor) {
     url += '&cursor=' + encodeURIComponent(cursor);
   }
@@ -33,7 +81,7 @@ export const searchCatalog = ({ category, subCategory, query, limit, cursor, sor
     url += '&keyword='+encodeURIComponent(query);
   }
   if (subCategory) {
-    url += '&subcategory=' + encodeURIComponent(subCategory);
+    url += '&subcategory=' + encodeURIComponent(subcategoryId);
   }
   if (creatorType && creatorId) {
     url += '&creatorTargetId=' + creatorId +'&creatorType=' + creatorType;
