@@ -1,5 +1,6 @@
 import Head from "next/head";
-import React, { useEffect, useState } from "react";
+import React, { createContext, useContext, useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import CatalogPageStore from "../../stores/catalogPage";
 import thumbnailStore from "../../stores/thumbnailStore";
 import { getItemUrl } from "../../services/catalog";
@@ -13,6 +14,51 @@ const referenceStylesheets = [
   "https://css.rbxcdn.com/55b250e8473888792f885d898973a13692fb22157baf61aaffa62ce4545f3408.css",
   "https://css.rbxcdn.com/3f27251ce64d1aedcaabe204116653a48c5faa3bf006fa2aa180b29f48e528c3.css",
 ];
+
+const catalogCss = `
+          body { margin: 0; min-width: 320px; min-height: 100vh; width: 100%; font-family: 'Source Sans Pro', Arial, Helvetica, sans-serif; font-size: 14px; }
+          .navbar-wrapper-main .navbar { min-height: 0; margin-bottom: 0; border: 0; border-radius: 0; }
+          .navbar-wrapper-main .navbar > .container { width: 100%; max-width: 100% !important; padding-left: 12px; padding-right: 12px; }
+          .navbar-wrapper-main .navbar .row { margin-left: -12px; margin-right: -12px; }
+          .navbar-wrapper-main .navbar [class*="col-"] { position: relative; min-height: 1px; padding-left: 12px; padding-right: 12px; }
+          .navbar-wrapper-main .navbar input.form-control { margin: 0; }
+          .catalog-one-file-page { margin-top: 0; font-family: 'HCo Gotham SSm', 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 16px; }
+          .catalog-one-file-page { min-height: 100vh; background: #e3e3e3; color: #393b3d; }
+          .catalog-one-file-page .content { max-width: 1240px; margin: 0 auto; padding: 0 12px 40px; background: transparent; }
+          .catalog-one-file-page .search-bars { min-height: 54px; }
+          .catalog-one-file-page .catalog-desktop-search .search-container { display: block; }
+          .catalog-one-file-page .search-options { display: block; }
+          .catalog-one-file-page .catalog-results { min-height: 500px; }
+          .catalog-one-file-page .item-card-thumb-container { overflow: hidden; }
+          .catalog-one-file-page .item-card-thumb-container .placeholder-asset-container { width: 150px; height: 150px; position: relative; }
+          .catalog-one-file-page .item-card-thumb-container .item-card-thumb { display: block; object-fit: contain; background: #f2f2f2; }
+          .catalog-one-file-page .item-card-caption .item-card-name-link { color: #393b3d; }
+          .catalog-one-file-page .item-card-price .icon-robux-16x16, .catalog-one-file-page .item-card-price .icon-robux-gray { display: inline-block; float: none; vertical-align: -3px; }
+          .catalog-one-file-page .catalog-custom-price .has-input { display: block; }
+          .catalog-one-file-page .catalog-custom-price .price-input { display: block; width: 126px; height: 24px; padding: 0 5px; margin: 0 2px 6px 0; }
+          .catalog-one-file-page .catalog-custom-price .price-input:last-of-type { margin-bottom: 0; }
+          .catalog-one-file-page .catalog-custom-price .btn-update-filter { display: block; margin-top: 6px; }
+          @media (max-width: 767px) {
+            .catalog-one-file-page .catalog-custom-price .price-input { display: inline-block; width: 90px; height: 38px; margin: 0; }
+            .catalog-one-file-page .catalog-custom-price .btn-update-filter { display: none; }
+          }
+          .catalog-one-file-page .dropdown-menu.show { display: block; }
+          .catalog-one-file-page .pager-holder-inner { text-align: center; }
+          .catalog-one-file-page .mobile-search-options { display: none; }
+          .catalog-one-file-page .catalog-category-separator { border-top: 1px solid #b8b8b8; margin: 8px 12px 8px 0; }
+          @media (max-width: 767px) {
+            .catalog-one-file-page .content { max-width: 100%; margin: 0; padding: 0 5px 24px; }
+            .catalog-one-file-page .catalog-desktop-search { display: none; }
+            .catalog-one-file-page .search-bars { min-height: 98px; }
+            .catalog-one-file-page .search-options { display: none; }
+            .catalog-one-file-page .mobile-search-options.catalog-mobile-open { display: block; position: absolute; z-index: 1200; left: 5px; right: 5px; background: #fff; box-shadow: 0 3px 12px rgba(0,0,0,.28); }
+            .catalog-one-file-page .catalog-results { width: 100%; float: none; margin-top: 0; }
+            .catalog-one-file-page .breadcrumbs { display: block; text-align: left; }
+            .catalog-one-file-page .breadcrumbs .breadcrumb-container { display: none; }
+            .catalog-one-file-page .breadcrumbs .sort-menus { float: none; width: 100%; text-align: right; }
+            .catalog-one-file-page .catalog-results .item-cards-stackable .item-card { width: 100%; }
+          }
+`;
 
 const navigationItems = [
   {
@@ -123,6 +169,14 @@ const timeOptions = [
   [1, "Past Week"],
   [2, "Past Day"],
 ];
+
+const emptyPrice = { mode: "any", min: "", max: "" };
+const PriceContext = createContext({
+  draft: emptyPrice,
+  applied: emptyPrice,
+  setDraft: () => {},
+  apply: () => {},
+});
 
 const categoryLabel = (category) => {
   switch ((category || "").toLowerCase()) {
@@ -271,7 +325,7 @@ const CatalogSearch = ({ onOpenMobile }) => (
 
 const CatalogFilters = () => {
   const store = CatalogPageStore.useContainer();
-  const [price, setPrice] = useState("any");
+  const { draft, setDraft, apply } = useContext(PriceContext);
   const [unavailable, setUnavailable] = useState("hide");
 
   const toggleGenre = (genre) => {
@@ -279,6 +333,12 @@ const CatalogFilters = () => {
       ? store.genres.filter((value) => value !== genre)
       : [...store.genres, genre];
     store.setGenres(next);
+  };
+
+  const setPriceMode = (mode) => {
+    const next = { ...draft, mode };
+    setDraft(next);
+    if (mode !== "custom") apply(next);
   };
 
   return (
@@ -319,8 +379,8 @@ const CatalogFilters = () => {
               id="radio-price-0"
               type="radio"
               name="catalog-price"
-              checked={price === "any"}
-              onChange={() => setPrice("any")}
+              checked={draft.mode === "any"}
+              onChange={() => setPriceMode("any")}
             />
             <label htmlFor="radio-price-0">Any Price</label>
           </li>
@@ -329,13 +389,38 @@ const CatalogFilters = () => {
               id="radio-price-3"
               type="radio"
               name="catalog-price"
-              checked={price === "custom"}
-              onChange={() => setPrice("custom")}
+              checked={draft.mode === "custom"}
+              onChange={() => setDraft({ ...draft, mode: "custom" })}
             />
             <label htmlFor="radio-price-3" className="has-input">
-              <input type="text" aria-label="Minimum price" />
-              <span> - </span>
-              <input type="text" aria-label="Maximum price" />
+              <input
+                className="form-control input-field input-number price-input font-caption-body"
+                type="number"
+                min="0"
+                name="minPrice"
+                placeholder="Min"
+                value={draft.min}
+                onChange={(event) => setDraft({ ...draft, mode: "custom", min: event.target.value })}
+                onFocus={() => setDraft({ ...draft, mode: "custom" })}
+              />
+              <input
+                className="form-control input-field input-number price-input font-caption-body"
+                type="number"
+                min="0"
+                name="maxPrice"
+                placeholder="Max"
+                value={draft.max}
+                onChange={(event) => setDraft({ ...draft, mode: "custom", max: event.target.value })}
+                onFocus={() => setDraft({ ...draft, mode: "custom" })}
+              />
+              <button
+                type="button"
+                className="btn-secondary-xs btn-update-filter"
+                disabled={draft.mode !== "custom"}
+                onClick={() => apply({ ...draft, mode: "custom" })}
+              >
+                Go
+              </button>
             </label>
           </li>
           <li className="radio top-border font-caption-body">
@@ -343,8 +428,8 @@ const CatalogFilters = () => {
               id="radio-price-5"
               type="radio"
               name="catalog-price"
-              checked={price === "free"}
-              onChange={() => setPrice("free")}
+              checked={draft.mode === "free"}
+              onChange={() => setPriceMode("free")}
             />
             <label htmlFor="radio-price-5">Free</label>
           </li>
@@ -472,6 +557,7 @@ const CatalogSidebar = () => {
 
 const CatalogMobileSearchOptions = ({ open, onClose }) => {
   const store = CatalogPageStore.useContainer();
+  const { draft, apply } = useContext(PriceContext);
   const [tab, setTab] = useState("category");
   const [openCategory, setOpenCategory] = useState(null);
 
@@ -601,7 +687,14 @@ const CatalogMobileSearchOptions = ({ open, onClose }) => {
           <button type="button" id="cancel-button" className="btn-control-lg" onClick={onClose}>
             Cancel
           </button>
-          <button type="button" className="btn-primary-lg apply-button" onClick={onClose}>
+          <button
+            type="button"
+            className="btn-primary-lg apply-button"
+            onClick={() => {
+              apply(draft);
+              onClose();
+            }}
+          >
             Apply
           </button>
         </div>
@@ -764,7 +857,17 @@ const CatalogPagination = () => {
 
 const CatalogResults = () => {
   const store = CatalogPageStore.useContainer();
-  const results = store.results && Array.isArray(store.results.data) ? store.results.data : [];
+  const { applied } = useContext(PriceContext);
+  const allResults = store.results && Array.isArray(store.results.data) ? store.results.data : [];
+  const results = allResults.filter((item) => {
+    if (applied.mode === "free") return item.price === 0;
+    if (applied.mode !== "custom") return true;
+    const price = typeof item.price === "number" ? item.price : null;
+    if (price === null) return false;
+    if (applied.min !== "" && price < Number(applied.min)) return false;
+    if (applied.max !== "" && price > Number(applied.max)) return false;
+    return true;
+  });
   const loaded = store.results !== null;
   const [timeSort, setTimeSort] = useState(0);
   const showTimeSort = [100, 101, 3].includes(store.sort);
@@ -821,52 +924,22 @@ const CatalogFooter = () => (
   </footer>
 );
 
-const CatalogPage = () => {
+const CatalogContent = () => {
   const [mobileOptionsOpen, setMobileOptionsOpen] = useState(false);
-  return (
-    <CatalogPageStore.Provider>
-      <Head>
-        {referenceStylesheets.map((href) => <link rel="stylesheet" href={href} key={href} />)}
-        <style>{`
-          body { margin: 0; min-width: 320px; min-height: 100vh; width: 100%; font-family: 'Source Sans Pro', Arial, Helvetica, sans-serif; font-size: 14px; }
-          .navbar-wrapper-main .navbar { min-height: 0; margin-bottom: 0; border: 0; border-radius: 0; }
-          .navbar-wrapper-main .navbar > .container { width: 100%; max-width: 100% !important; padding-left: 12px; padding-right: 12px; }
-          .navbar-wrapper-main .navbar .row { margin-left: -12px; margin-right: -12px; }
-          .navbar-wrapper-main .navbar [class*="col-"] { position: relative; min-height: 1px; padding-left: 12px; padding-right: 12px; }
-          .navbar-wrapper-main .navbar input.form-control { margin: 0; }
-          .catalog-one-file-page { margin-top: 0; font-family: 'HCo Gotham SSm', 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 16px; }
-          .catalog-one-file-page { min-height: 100vh; background: #e3e3e3; color: #393b3d; }
-          .catalog-one-file-page .content { max-width: 1240px; margin: 0 auto; padding: 0 12px 40px; background: transparent; }
-          .catalog-one-file-page .search-bars { min-height: 54px; }
-          .catalog-one-file-page .catalog-desktop-search .search-container { display: block; }
-          .catalog-one-file-page .search-options { display: block; }
-          .catalog-one-file-page .catalog-results { min-height: 500px; }
-          .catalog-one-file-page .item-card-thumb-container { overflow: hidden; }
-          .catalog-one-file-page .item-card-thumb-container .placeholder-asset-container { width: 150px; height: 150px; position: relative; }
-          .catalog-one-file-page .item-card-thumb-container .item-card-thumb { display: block; object-fit: contain; background: #f2f2f2; }
-          .catalog-one-file-page .item-card-caption .item-card-name-link { color: #393b3d; }
-          .catalog-one-file-page .item-card-price .icon-robux-16x16, .catalog-one-file-page .item-card-price .icon-robux-gray { display: inline-block; float: none; vertical-align: -3px; }
-          .catalog-one-file-page .catalog-custom-price .has-input { display: flex; align-items: center; gap: 2px; }
-          .catalog-one-file-page .catalog-custom-price input[type=text] { width: 40px; height: 22px; padding: 2px; }
-          .catalog-one-file-page .dropdown-menu.show { display: block; }
-          .catalog-one-file-page .pager-holder-inner { text-align: center; }
-          .catalog-one-file-page .mobile-search-options { display: none; }
-          .catalog-one-file-page .catalog-category-separator { border-top: 1px solid #b8b8b8; margin: 8px 12px 8px 0; }
-          @media (max-width: 767px) {
-            .catalog-one-file-page .content { max-width: 100%; margin: 0; padding: 0 5px 24px; }
-            .catalog-one-file-page .catalog-desktop-search { display: none; }
-            .catalog-one-file-page .search-bars { min-height: 98px; }
-            .catalog-one-file-page .search-options { display: none; }
-            .catalog-one-file-page .mobile-search-options.catalog-mobile-open { display: block; position: absolute; z-index: 1200; left: 5px; right: 5px; background: #fff; box-shadow: 0 3px 12px rgba(0,0,0,.28); }
-            .catalog-one-file-page .catalog-results { width: 100%; float: none; margin-top: 0; }
-            .catalog-one-file-page .breadcrumbs { display: block; text-align: left; }
-            .catalog-one-file-page .breadcrumbs .breadcrumb-container { display: none; }
-            .catalog-one-file-page .breadcrumbs .sort-menus { float: none; width: 100%; text-align: right; }
-            .catalog-one-file-page .catalog-results .item-cards-stackable .item-card { width: 100%; }
-          }
-        `}</style>
-      </Head>
+  const [priceDraft, setPriceDraft] = useState(emptyPrice);
+  const [priceApplied, setPriceApplied] = useState(emptyPrice);
+  const priceContext = {
+    draft: priceDraft,
+    applied: priceApplied,
+    setDraft: setPriceDraft,
+    apply: setPriceApplied,
+  };
 
+  return (
+    <>
+      {referenceStylesheets.map((href) => <link rel="stylesheet" href={href} key={href} />)}
+      <style>{catalogCss}</style>
+      <PriceContext.Provider value={priceContext}>
       <div id="catalog-one-file-page" className="catalog-one-file-page rbx-body light-theme gotham-font">
         <div className="container-main full-screen touch">
           <div className="content">
@@ -892,6 +965,31 @@ const CatalogPage = () => {
         </div>
         <CatalogFooter />
       </div>
+      </PriceContext.Provider>
+    </>
+  );
+};
+
+const CatalogPage = () => {
+  const host = useRef(null);
+  const [shadow, setShadow] = useState(null);
+
+  useEffect(() => {
+    if (host.current && !host.current.shadowRoot) {
+      setShadow(host.current.attachShadow({ mode: "open" }));
+    }
+  }, []);
+
+  return (
+    <CatalogPageStore.Provider>
+      <>
+        <Head>
+          <meta name="description" content="Browse the Roblox catalog." />
+        </Head>
+        <div ref={host} className="catalog-host">
+          {shadow && createPortal(<CatalogContent />, shadow)}
+        </div>
+      </>
     </CatalogPageStore.Provider>
   );
 };
