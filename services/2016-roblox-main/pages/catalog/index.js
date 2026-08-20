@@ -2,6 +2,7 @@ import Head from "next/head";
 import React, { createContext, useContext, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import CatalogPageStore from "../../stores/catalogPage";
+import AdBanner from "../../components/ad/adBanner";
 import thumbnailStore from "../../stores/thumbnailStore";
 import { getItemUrl } from "../../services/catalog";
 import Link from "../../components/link";
@@ -26,10 +27,15 @@ const catalogCss = `
           .catalog-one-file-page { min-height: 100vh; background: #e3e3e3; color: #393b3d; }
           .catalog-one-file-page .container-main { margin-top: 0; }
           .catalog-one-file-page .content { max-width: 1240px; margin: 0 auto; padding: 0 12px 40px; background: transparent; }
+          .catalog-one-file-page .catalog-ad img { display: block; width: 100%; height: auto; margin: 0 auto; }
+          .catalog-one-file-page .catalog-ad { min-height: 90px; }
           .catalog-one-file-page .search-bars { min-height: 54px; }
           .catalog-one-file-page .catalog-desktop-search .search-container { display: block; }
           .catalog-one-file-page .search-options { display: block; }
           .catalog-one-file-page .catalog-results { min-height: 500px; }
+          .catalog-one-file-page .catalog-results-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 6px; }
+          .catalog-one-file-page .catalog-results-header .featured-items-heading { margin: 0; padding: 0 0 4px 5px; }
+          .catalog-one-file-page .catalog-results-header .sort-menus { display: flex; align-items: center; float: none; margin-left: auto; }
           .catalog-one-file-page .item-card-thumb-container { overflow: hidden; }
           .catalog-one-file-page .item-card-thumb-container .placeholder-asset-container { width: 150px; height: 150px; position: relative; }
           .catalog-one-file-page .item-card-thumb-container .item-card-thumb { display: block; object-fit: contain; background: #f2f2f2; }
@@ -51,6 +57,8 @@ const catalogCss = `
             .catalog-one-file-page .content { max-width: 100%; margin: 0; padding: 0 5px 24px; }
             .catalog-one-file-page .catalog-desktop-search { display: none; }
             .catalog-one-file-page .search-bars { min-height: 98px; }
+            .catalog-one-file-page .catalog-results-header { display: block; }
+            .catalog-one-file-page .catalog-results-header .sort-menus { justify-content: flex-end; margin-top: 4px; }
             .catalog-one-file-page .search-options { display: none; }
             .catalog-one-file-page .mobile-search-options.catalog-mobile-open { display: block; position: absolute; z-index: 1200; left: 5px; right: 5px; background: #fff; box-shadow: 0 3px 12px rgba(0,0,0,.28); }
             .catalog-one-file-page .catalog-results { width: 100%; float: none; margin-top: 0; }
@@ -879,19 +887,21 @@ const CatalogResults = () => {
 
   return (
     <div className="catalog-results">
-      <h3 className="featured-items-heading">
-        <span className="line-height">{title}</span>
-      </h3>
+      <div className="catalog-results-header">
+        <h3 className="featured-items-heading">
+          <span className="line-height">{title}</span>
+        </h3>
+        <div className="sort-menus">
+          <CatalogSortMenu value={store.sort} options={sortOptions} onChange={store.setSort} className="sort-dropdown" />
+          {showTimeSort && <CatalogSortMenu value={timeSort} options={timeOptions} onChange={setTimeSort} className="subsort-dropdown" />}
+        </div>
+      </div>
       <div>
         <div className="breadcrumbs">
           <ul className="breadcrumb-container">
             <li><a href="#" className="text-link breadcrumb-link" onClick={(event) => event.preventDefault()}>{currentCategory}</a></li>
             {store.subCategory && <li><span className="icon-right-16x16" /><a href="#" className="text-link breadcrumb-link" onClick={(event) => event.preventDefault()}>{store.subCategory}</a></li>}
           </ul>
-          <div className="sort-menus">
-            <CatalogSortMenu value={store.sort} options={sortOptions} onChange={store.setSort} className="sort-dropdown" />
-            {showTimeSort && <CatalogSortMenu value={timeSort} options={timeOptions} onChange={setTimeSort} className="subsort-dropdown" />}
-          </div>
         </div>
       </div>
       <div id="results" className="results-container" style={store.locked ? { opacity: 0.45 } : undefined}>
@@ -943,6 +953,7 @@ const CatalogContent = () => {
       <div id="catalog-one-file-page" className="catalog-one-file-page rbx-body light-theme gotham-font">
         <div className="container-main full-screen touch">
           <div className="content">
+            <div className="catalog-ad"><AdBanner /></div>
             <div className="catalog-container">
               <div id="catalog-container">
                 <div className="catalog-page">
