@@ -2,6 +2,9 @@ import request, { getBaseUrl } from "../lib/request"
 import { getFullUrl } from "../lib/request";
 import getFlag from "../lib/getFlag";
 
+const robloxCatalogBaseUrl = 'https://catalog.roblox.com';
+const getRobloxCatalogUrl = (path) => robloxCatalogBaseUrl + path;
+
 export const itemNameToEncodedName = (str) => {
   if (typeof str !== 'string') {
     str = '';
@@ -35,7 +38,7 @@ export const searchCatalog = ({ category, subCategory, query, limit, cursor, sor
   if (creatorType && creatorId) {
     url += '&creatorTargetId=' + creatorId +'&creatorType=' + creatorType;
   }
-  return request('GET', getFullUrl('catalog', url)).then(d => d.data);
+  return request('GET', getRobloxCatalogUrl(url)).then(d => d.data);
 }
 
 /**
@@ -50,7 +53,7 @@ export const getItemDetails = async (assetIdArray) => {
   if (assetIdArray.length === 0) return {data:{data: []}}
   while (true) {
     try {
-      const res = await request('POST', getFullUrl('catalog', '/v1/catalog/items/details'), {
+      const res = await request('POST', getRobloxCatalogUrl('/v1/catalog/items/details'), {
         items: assetIdArray.map(v => {
           return {
             itemType: 'Asset',

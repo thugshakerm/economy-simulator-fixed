@@ -1,6 +1,8 @@
 import { chunk, flatten } from "lodash";
 import request, { getBaseUrl, getFullUrl } from "../lib/request"
 
+const robloxThumbnailsBaseUrl = 'https://thumbnails.roblox.com';
+
 const toCsv = (str) => {
   if (typeof str === 'string') return str;
   return encodeURIComponent(str.join(','));
@@ -89,7 +91,7 @@ export const multiGetGroupIcons = ({ groupIds }) => {
 }
 
 export const multiGetAssetThumbnails = ({ assetIds }) => {
-  return request('get', getFullUrl('thumbnails', `/v1/assets?assetIds=${toCsv(assetIds)}&format=png&size=420x420`)).then(d => d.data.data).then(addBaseUrl);
+  return request('get', robloxThumbnailsBaseUrl + `/v1/assets?assetIds=${toCsv(assetIds)}&format=png&size=420x420`).then(d => d.data.data).then(addBaseUrl);
 }
 
 export const multiGetUniverseIcons = ({ universeIds, size }) => {
