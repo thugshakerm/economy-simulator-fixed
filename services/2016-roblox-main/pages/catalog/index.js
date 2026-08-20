@@ -51,6 +51,7 @@ const catalogCss = `
             .catalog-one-file-page .catalog-custom-price .price-input { display: inline-block; width: 90px; height: 38px; margin: 0; }
             .catalog-one-file-page .catalog-custom-price .btn-update-filter { display: none; }
           }
+          .catalog-one-file-page .dropdown-menu { display: none; }
           .catalog-one-file-page .dropdown-menu.show { display: block; }
           .catalog-one-file-page .pager-holder-inner { text-align: center; }
           .catalog-one-file-page .mobile-search-options { display: none; }
@@ -880,7 +881,17 @@ const CatalogResults = () => {
     return true;
   });
   const loaded = store.results !== null;
+  const [timedOut, setTimedOut] = useState(false);
   const [timeSort, setTimeSort] = useState(0);
+
+  useEffect(() => {
+    if (loaded) {
+      setTimedOut(false);
+      return undefined;
+    }
+    const timer = setTimeout(() => setTimedOut(true), 16000);
+    return () => clearTimeout(timer);
+  }, [loaded]);
   const showTimeSort = [100, 101, 3].includes(store.sort);
   const currentCategory = categoryLabel(store.category);
   const title = store.category === "Featured"
@@ -907,7 +918,8 @@ const CatalogResults = () => {
         </div>
       </div>
       <div id="results" className="results-container" style={store.locked ? { opacity: 0.45 } : undefined}>
-        {!loaded && <div className="spinner spinner-sm" />}
+        {!loaded && !timedOut && <div className="spinner spinner-sm" />}
+        {!loaded && timedOut && <div className="section-content-off">Catalog temporarily unavailable. Please try again later.</div>}
         {loaded && results.length === 0 && <div className="section-content-off">No items found.</div>}
         {loaded && results.length > 0 && (
           <ul className="hlist item-cards-stackable">
