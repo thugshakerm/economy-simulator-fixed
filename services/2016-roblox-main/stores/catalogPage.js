@@ -87,8 +87,9 @@ const CatalogPageStore = createContainer(() => {
 
 
   useEffect(() => {
+    let cancelled = false;
     setLocked(true);
-    let response = null;
+
     searchCatalog({
       category,
       subCategory,
@@ -97,30 +98,38 @@ const CatalogPageStore = createContainer(() => {
       cursor,
       sort,
     })
-      .then(result => {
-        response = result;
+      .then(async response => {
+        if (!response || !Array.isArray(response.data)) {
+          throw new Error('Invalid catalog response');
+        }
         if (response.data.length === 0) {
-          return [];
+          return response;
         }
-        return getItemDetails(result.data.map(v => v.id));
+        const assetDetails = await getItemDetails(response.data.map(v => v.id));
+        const data = response.data.map(item => assetDetails.data.data.find(v => v.id === item.id)).filter(Boolean);
+        return { ...response, data };
       })
-      .then(assetDetails => {
-        let arr = [];
-        // do it this way to preserve sort
-        for (const item of response.data) {
-          let details = assetDetails.data.data.find(v => v.id === item.id);
-          if (details) arr.push(details);
-        }
-        response.data = arr;
+      .then(response => {
+        if (cancelled) return;
         setResults(response);
-        setNextCursor(response.nextPageCursor);
-        setPreviousCursor(response.previousPageCursor);
-        let total = response._total;
-        setTotal(typeof total === 'number' ? total : null);
+        setNextCursor(response.nextPageCursor || null);
+        setPreviousCursor(response.previousPageCursor || null);
+        setTotal(typeof response._total === 'number' ? response._total : null);
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setResults({ data: [] });
+        setNextCursor(null);
+        setPreviousCursor(null);
+        setTotal(0);
       })
       .finally(() => {
-        setLocked(false);
-      })
+        if (!cancelled) setLocked(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
   }, [cursor, sort, category, subCategory, genres, query, limit]);
 
   const clearStatesForNewQuery = () => {

@@ -2,8 +2,8 @@ import Head from "next/head";
 import React, { createContext, useContext, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import CatalogPageStore from "../../stores/catalogPage";
-import AdBanner from "../../components/ad/adBanner";
 import thumbnailStore from "../../stores/thumbnailStore";
+import request, { getBaseUrl } from "../../lib/request";
 import { getItemUrl } from "../../services/catalog";
 import Link from "../../components/link";
 
@@ -918,6 +918,36 @@ const CatalogResults = () => {
   );
 };
 
+const CatalogAd = () => {
+  const [ad, setAd] = useState(null);
+
+  useEffect(() => {
+    request('GET', `${getBaseUrl()}/user-sponsorship/1`)
+      .then(response => {
+        const document = new DOMParser().parseFromString(response.data, 'text/html');
+        const image = document.querySelector('img');
+        const link = document.querySelector('a');
+        if (!image || !link) return;
+        setAd({
+          image: image.getAttribute('src'),
+          href: link.getAttribute('href'),
+          title: link.getAttribute('title') || '',
+        });
+      })
+      .catch(() => {});
+  }, []);
+
+  return (
+    <div className="catalog-ad">
+      {ad ? (
+        <a href={ad.href} title={ad.title}>
+          <img src={ad.image} alt={ad.title} />
+        </a>
+      ) : <div style={{ width: '100%', height: 90 }} />}
+    </div>
+  );
+};
+
 const CatalogFooter = () => (
   <footer className="footer catalog-snapshot-footer">
     <ul className="row footer-links">
@@ -953,7 +983,7 @@ const CatalogContent = () => {
       <div id="catalog-one-file-page" className="catalog-one-file-page rbx-body light-theme gotham-font">
         <div className="container-main full-screen touch">
           <div className="content">
-            <div className="catalog-ad"><AdBanner /></div>
+            <CatalogAd />
             <div className="catalog-container">
               <div id="catalog-container">
                 <div className="catalog-page">

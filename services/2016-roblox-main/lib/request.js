@@ -11,8 +11,9 @@ const getBaseUrl = () => {
 }
 
 const getUrlWithProxy = (url) => {
-  if (config.publicRuntimeConfig.backend.proxyEnabled)
-    return '' + (url);
+  if (config.publicRuntimeConfig.backend.proxyEnabled && typeof window !== 'undefined') {
+    return '/api/proxy?url=' + encodeURIComponent(url);
+  }
   return url;
 }
 
