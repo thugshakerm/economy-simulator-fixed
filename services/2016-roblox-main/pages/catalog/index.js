@@ -129,33 +129,6 @@ const timeOptions = [
   [2, "Past Day"],
 ];
 
-const useCatalogShell = () => {
-  useEffect(() => {
-    document.body.classList.add("catalog-route");
-    const catalogRoot = document.getElementById("catalog-one-file-page");
-    const appRoot = document.querySelector("#__next > div");
-    const hiddenNodes = [];
-
-    // The original app shell is outside this page. Hide those siblings only
-    // while the catalog is mounted, without requiring an _app.js change.
-    if (appRoot && catalogRoot) {
-      Array.from(appRoot.children).forEach((node) => {
-        if (!node.contains(catalogRoot)) {
-          hiddenNodes.push([node, node.style.display]);
-          node.style.display = "none";
-        }
-      });
-    }
-
-    return () => {
-      document.body.classList.remove("catalog-route");
-      hiddenNodes.forEach(([node, display]) => {
-        node.style.display = display;
-      });
-    };
-  }, []);
-};
-
 const CatalogSearchMenu = ({ store, open, setOpen }) => (
   <div className="input-group-btn">
     <button
@@ -793,18 +766,13 @@ const CatalogFooter = () => (
 
 const CatalogPage = () => {
   const [mobileOptionsOpen, setMobileOptionsOpen] = useState(false);
-  useCatalogShell();
-
   return (
     <CatalogPageStore.Provider>
       <Head>
         {referenceStylesheets.map((href) => <link rel="stylesheet" href={href} key={href} />)}
         <style>{`
-          body.catalog-route { margin: 0; min-width: 320px; overflow-y: scroll; background: #e3e3e3 !important; }
-          body.catalog-route .navbar-wrapper-main, body.catalog-route #__next > div > footer.footer:not(.catalog-snapshot-footer),
-          #__next > div > .navbar-wrapper-main, #__next > div > [class^="fakeAlert-"],
-          #__next > div > [class^="alertBg-"], #__next > div > footer.footer:not(.catalog-snapshot-footer),
-          #__next > div > [class^="footer-"] { display: none !important; }
+          body { min-width: 320px; }
+          .catalog-one-file-page { margin-top: 0; }
           .catalog-one-file-page { min-height: 100vh; background: #e3e3e3; color: #393b3d; }
           .catalog-one-file-page .content { max-width: 1240px; margin: 0 auto; padding: 0 12px 40px; background: transparent; }
           .catalog-one-file-page .search-bars { min-height: 54px; }
