@@ -33,10 +33,9 @@ const actualHandler = async (req, res) => {
   const fullUrl = req.query.url;
   // Right now we just validate the URL. 
   // A safer approach might be to just send the parts of the URL (query params, path, api site) to this handler, then construct the correct URL here.
-  const isRobloxUrl = typeof fullUrl === 'string' && /^https:\/\/(?:[a-z0-9-]+\.)*roblox\.com(?:\/|$)/i.test(fullUrl);
-  const isUrlSafe = UrlUtilities.isSafe(fullUrl) || isRobloxUrl;
+  const isUrlSafe = UrlUtilities.isSafe(fullUrl);
 
-  if ((!isRobloxUrl && getConfig().publicRuntimeConfig.backend.proxyEnabled !== true) || !isUrlSafe) {
+  if (getConfig().publicRuntimeConfig.backend.proxyEnabled !== true || !isUrlSafe) {
     return res.status(500).json({
       success: false,
     });
