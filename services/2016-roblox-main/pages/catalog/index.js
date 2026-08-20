@@ -17,6 +17,7 @@ const referenceStylesheets = [
 ];
 
 const catalogCss = `
+          :host { display: block; background: #fff; }
           body { margin: 0; min-width: 320px; min-height: 100vh; width: 100%; font-family: 'Source Sans Pro', Arial, Helvetica, sans-serif; font-size: 14px; }
           .navbar-wrapper-main .navbar { min-height: 0; margin-bottom: 0; border: 0; border-radius: 0; }
           .navbar-wrapper-main .navbar > .container { width: 100%; max-width: 100% !important; padding-left: 12px; padding-right: 12px; }

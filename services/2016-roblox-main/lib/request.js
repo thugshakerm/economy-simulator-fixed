@@ -11,7 +11,8 @@ const getBaseUrl = () => {
 }
 
 const getUrlWithProxy = (url) => {
-  if (config.publicRuntimeConfig.backend.proxyEnabled && typeof window !== 'undefined') {
+  const isRobloxUrl = typeof url === 'string' && /^https:\/\/(?:[a-z0-9-]+\.)*roblox\.com(?:\/|$)/i.test(url);
+  if (typeof window !== 'undefined' && (config.publicRuntimeConfig.backend.proxyEnabled || isRobloxUrl)) {
     return '/api/proxy?url=' + encodeURIComponent(url);
   }
   return url;
