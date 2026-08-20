@@ -78,6 +78,7 @@ const CatalogPageStore = createContainer(() => {
   const [subCategory, setSubCategory] = useState('');
   const [locked, setLocked] = useState(false);
   const [results, setResults] = useState(null);
+  const [unavailable, setUnavailable] = useState(false);
   const [total, setTotal] = useState(null);
   const [nextCursor, setNextCursor] = useState(null);
   const [previousCursor, setPreviousCursor] = useState(null);
@@ -87,8 +88,10 @@ const CatalogPageStore = createContainer(() => {
 
 
   useEffect(() => {
+    let cancelled = false;
     setLocked(true);
-    let response = null;
+    setUnavailable(false);
+
     searchCatalog({
       category,
       subCategory,
@@ -96,31 +99,48 @@ const CatalogPageStore = createContainer(() => {
       limit,
       cursor,
       sort,
+      genres,
     })
-      .then(result => {
-        response = result;
-        if (response.data.length === 0) {
-          return [];
+      .then(async response => {
+        if (!response || !Array.isArray(response.data)) {
+          throw new Error('Catalog returned an invalid response');
         }
-        return getItemDetails(result.data.map(v => v.id));
-      })
-      .then(assetDetails => {
-        let arr = [];
-        // do it this way to preserve sort
+        if (response.data.length === 0) {
+          return response;
+        }
+
+        const assetDetails = await getItemDetails(response.data.map(v => v.id));
+        const arr = [];
+        // Do it this way to preserve the catalog API sort order.
         for (const item of response.data) {
-          let details = assetDetails.data.data.find(v => v.id === item.id);
+          const details = assetDetails.data.data.find(v => v.id === item.id);
           if (details) arr.push(details);
         }
-        response.data = arr;
+        return { ...response, data: arr };
+      })
+      .then(response => {
+        if (cancelled) return;
         setResults(response);
         setNextCursor(response.nextPageCursor);
         setPreviousCursor(response.previousPageCursor);
-        let total = response._total;
-        setTotal(typeof total === 'number' ? total : null);
+        const responseTotal = response._total;
+        setTotal(typeof responseTotal === 'number' ? responseTotal : null);
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setResults({ data: [] });
+        setNextCursor(null);
+        setPreviousCursor(null);
+        setTotal(0);
+        setUnavailable(true);
       })
       .finally(() => {
-        setLocked(false);
-      })
+        if (!cancelled) setLocked(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
   }, [cursor, sort, category, subCategory, genres, query, limit]);
 
   const clearStatesForNewQuery = () => {
@@ -131,6 +151,7 @@ const CatalogPageStore = createContainer(() => {
   return {
     locked,
     results,
+    unavailable,
     total,
 
     nextCursor,

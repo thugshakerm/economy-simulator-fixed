@@ -1,224 +1,369 @@
-import React from "react";
-import { createUseStyles } from "react-jss";
+import React, { useState } from "react";
 import CatalogPageStore from "../../stores/catalogPage";
-import CatalogLegend from "../catalogLegend";
-import Dropdown from "../dropdown";
+import CatalogFilters from "../catalogFilters";
 
-const navigationItems = [
+const categories = [
   {
-    name: 'Featured',
-    clickData: '', // don't care
-    children: {
-      title: 'Featured Types',
-      children: [
-        {
-          name: 'All Featured Items',
-          clickData: 'Featured,',
-        },
-        {
-          name: 'Featured Hats',
-          clickData: 'Featured,Accessories',
-        },
-        {
-          name: 'Featured Gear',
-          clickData: 'Featured,Gear',
-        },
-        {
-          name: 'Featured Faces',
-          clickData: 'Featured,Faces',
-        },
-        // TODO:
-        /*
-        {
-          name: 'Featured Packages',
-          clickData: 'Featured,Packages',
-        },
-        */
-      ],
-    },
+    id: 1,
+    name: "All Items",
+    api: "All",
+    children: [],
   },
   {
-    name: 'Collectibles',
-    clickData: '',
-    children: {
-      title: 'Collectible Types',
-      children: [
-        {
-          name: 'All Collectibles',
-          clickData: 'Collectibles,',
-        },
-        {
-          name: 'Collectible Faces',
-          clickData: 'Collectibles,Faces',
-        },
-        {
-          name: 'Collectible Hats',
-          clickData: 'Collectibles,Accessories',
-        },
-        {
-          name: 'Collectible Gear',
-          clickData: 'Collectibles,Gear',
-        },
-      ]
-    },
+    id: 0,
+    name: "Featured",
+    api: "Featured",
+    children: [
+      ["All Featured Items", ""],
+      ["Featured Accessories", "Accessories"],
+      ["Featured Animations", "Animations"],
+      ["Featured Faces", "Faces"],
+      ["Featured Gear", "Gear"],
+      ["Featured Bundles", "Bundles"],
+      ["Featured Emotes", "Emotes"],
+    ],
   },
   {
-    name: 'separator',
-    clickData: '',
+    id: 13,
+    name: "Community Creations",
+    api: "Community Creations",
+    children: [
+      ["All Creations", ""],
+      ["Hats", "Hats"],
+      ["Hair", "Hair"],
+      ["Face", "Face"],
+      ["Neck", "Neck"],
+      ["Shoulder", "Shoulder"],
+      ["Front", "Front"],
+      ["Back", "Back"],
+      ["Waist", "Waist"],
+    ],
   },
   {
-    name: 'All Categories',
-    clickData: 'all,all',
+    id: 14,
+    name: "Premium",
+    api: "Premium",
+    children: [
+      ["All Premium Items", ""],
+      ["Hats", "Hats"],
+      ["Hair", "Hair"],
+      ["Face", "Face"],
+      ["Neck", "Neck"],
+      ["Shoulder", "Shoulder"],
+      ["Front", "Front"],
+      ["Back", "Back"],
+      ["Waist", "Waist"],
+    ],
   },
   {
-    name: 'Clothing',
-    clickData: '',
-    children: {
-      title: 'Clothing Types',
-      children: [
-        {
-          name: 'All Clothing',
-          clickData: 'null,Clothing',
-        },
-        {
-          name: 'Hats',
-          clickData: 'null,Accessories',
-        },
-        {
-          name: 'Shirts',
-          clickData: 'null,Shirt',
-        },
-        {
-          name: 'T-Shirts',
-          clickData: 'null,TeeShirt',
-        },
-        {
-          name: 'Pants',
-          clickData: 'null,Pants',
-        },
-        {
-          name: 'Packages',
-          clickData: 'null,Packages',
-        },
-      ]
-    }
+    id: 2,
+    name: "Collectibles",
+    api: "Collectibles",
+    children: [
+      ["All Collectibles", ""],
+      ["Collectible Accessories", "Accessories"],
+      ["Collectible Faces", "Faces"],
+      ["Collectible Gear", "Gear"],
+    ],
   },
   {
-    name: 'Body Parts',
-    clickData: '',
-    children: {
-      title: 'Body Part Types',
-      children: [
-        {
-          name: 'All Body Parts',
-          clickData: 'bodyparts,All',
-        },
-        {
-          name: 'Heads',
-          clickData: 'bodyparts,Heads'
-        },
-        {
-          name: 'Faces',
-          clickData: 'bodyparts,Faces',
-        },
-        {
-          name: 'Packages',
-          clickData: 'bodyparts,Packages'
-        },
-      ],
-    },
+    id: 3,
+    name: "Clothing",
+    api: "Clothing",
+    children: [
+      ["All Clothing", "Clothing"],
+      ["Shirts", "Shirts"],
+      ["T-Shirts", "TeeShirt"],
+      ["Pants", "Pants"],
+      ["Bundles", "Packages"],
+    ],
   },
   {
-    name: 'Gear',
-    clickData: '',
-    children: {
-      title: 'Gear Categories',
-      children: [
-        {
-          name: 'All Gear',
-          clickData: 'gear,all',
-        },
-        {
-          name: 'Melee Weapon',
-          clickData: 'gear,melee',
-        },
-        {
-          name: 'Ranged Weapon',
-          clickData: 'gear,ranged',
-        },
-        {
-          name: 'Explosive',
-          clickData: 'gear,explosive',
-        },
-        {
-          name: 'Power Up',
-          clickData: 'gear,powerup',
-        },
-        {
-          name: 'Navigation Enhancer',
-          clickData: 'gear,navigation',
-        },
-        {
-          name: 'Musical Instrument',
-          clickData: 'gear,musical',
-        },
-        {
-          name: 'Social Item',
-          clickData: 'gear,social',
-        },
-        {
-          name: 'Building Tool',
-          clickData: 'gear,building',
-        },
-        {
-          name: 'Personal Transport',
-          clickData: 'gear,transport',
-        },
-      ]
-    }
-  }
+    id: 4,
+    name: "Body Parts",
+    api: "Body Parts",
+    children: [
+      ["All Body Parts", "All"],
+      ["Heads", "Heads"],
+      ["Faces", "Faces"],
+      ["Bundles", "Packages"],
+    ],
+  },
+  {
+    id: 5,
+    name: "Gear",
+    api: "Gear",
+    children: [
+      ["All Gear", ""],
+      ["Building", "Building"],
+      ["Explosive", "Explosive"],
+      ["Melee", "Melee"],
+      ["Musical", "Musical"],
+      ["Navigation", "Navigation"],
+      ["Power Up", "Power Up"],
+      ["Ranged", "Ranged"],
+      ["Social", "Social"],
+      ["Transport", "Transport"],
+    ],
+  },
+  {
+    id: 11,
+    name: "Accessories",
+    api: "Accessories",
+    children: [
+      ["All Accessories", ""],
+      ["Hats", "Hats"],
+      ["Hair", "Hair"],
+      ["Face", "Face"],
+      ["Neck", "Neck"],
+      ["Shoulder", "Shoulder"],
+      ["Front", "Front"],
+      ["Back", "Back"],
+      ["Waist", "Waist"],
+    ],
+  },
+  {
+    id: 12,
+    name: "Avatar Animations",
+    api: "Avatar Animations",
+    children: [
+      ["Bundles", "Bundles"],
+      ["Emotes", "Emotes"],
+    ],
+  },
 ];
 
-const useTitleStyles = createUseStyles({
-  top: {
-    fontSize: '12px',
-    color: 'white',
-    fontWeight: 600,
-    lineHeight: 'normal',
-    marginBottom: '-5px',
-    paddingLeft: '4px',
-    textShadow: '1px 1px 1px black',
-  },
-  bottom: {
-    fontSize: '20px',
-    color: 'white',
-    fontWeight: 700,
-    lineHeight: 'normal',
-    paddingLeft: '4px',
-    textShadow: '1px 1px 1px black',
-  }
-})
+const CategoryPanel = ({ item, open, onToggle, onSelect }) => {
+  const hasChildren = item.children.length > 0;
+  const panelId = `category-${item.id}`;
+
+  return (
+    <li className="font-header-2 text-subheader panel panel-default">
+      <a
+        href={`#${panelId}`}
+        className="small text menu-link text-link-secondary panel-heading"
+        role="tab"
+        aria-expanded={open}
+        onClick={(event) => {
+          event.preventDefault();
+          onToggle(item.id);
+        }}
+      >
+        {item.id === 1 ? (
+          <span className="category-view-all">View All Items</span>
+        ) : (
+          <span className="category-name">{item.name}</span>
+        )}
+        {hasChildren && (
+          <span className={`${open ? "icon-minus" : "icon-plus"} toggle-submenu`} />
+        )}
+      </a>
+      <div
+        id={panelId}
+        className={`panel-collapse collapse${open ? " in show" : ""}`}
+        role="tabpanel"
+        aria-expanded={open}
+      >
+        {hasChildren && (
+          <ul className="subcategory-menu">
+            {item.children.map(([label, subcategory]) => (
+              <li className="top-border" key={label}>
+                <a
+                  href="#"
+                  className="small text menu-link text-link-secondary"
+                  onClick={(event) => {
+                    event.preventDefault();
+                    onSelect(item.api, subcategory);
+                  }}
+                >
+                  {label}
+                </a>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+    </li>
+  );
+};
+
 const CatalogPageNavigation = () => {
   const store = CatalogPageStore.useContainer();
-  const title = useTitleStyles();
-  return <>
-    <Dropdown
-      onClick={(e, clickData) => {
-        console.log('[info] catalog dropdown clicked with', clickData);
-        const [category, subCategory] = clickData.split(',');
-        if (category === '') {
-          console.log('[info] bad category');
-          return;
-        }
-        store.setCategory(category);
-        store.setSubCategory(subCategory);
-      }}
-      title={<div>
-        <p className={`mt-0 ${title.top}`}>Browse by</p>
-        <h2 className={`mb-0 mt-0 ${title.bottom}`}>Category</h2>
-      </div>}
-      items={navigationItems}></Dropdown>
-  </>
-}
+  const [openCategory, setOpenCategory] = useState(0);
 
+  const selectCategory = (category, subcategory) => {
+    if (store.locked) return;
+    const selected = categories.find((item) => item.api === category);
+    if (selected) setOpenCategory(selected.id);
+    store.setCategory(category);
+    store.setSubCategory(subcategory);
+  };
+
+  return (
+    <div id="search-options" className="search-options">
+      <form
+        name="forms.searchOptionsForm"
+        className="border-right search-options-form"
+        role="form"
+        noValidate
+      >
+        <div className="border-bottom category-section">
+          <h3 className="font-header-1 search-options-header">Category</h3>
+          <ul id="category-panel-group" className="panel-group">
+            {categories.map((item) => (
+              <CategoryPanel
+                key={item.id}
+                item={item}
+                open={openCategory === item.id}
+                onToggle={(id) => setOpenCategory(openCategory === id ? null : id)}
+                onSelect={selectCategory}
+              />
+            ))}
+          </ul>
+        </div>
+        <CatalogFilters />
+      </form>
+    </div>
+  );
+};
+
+const CatalogMobileSearchOptions = ({ open, onClose }) => {
+  const store = CatalogPageStore.useContainer();
+  const [tab, setTab] = useState("category");
+  const [openCategory, setOpenCategory] = useState(null);
+
+  const selectCategory = (category, subcategory) => {
+    if (store.locked) return;
+    const selected = categories.find((item) => item.api === category);
+    if (selected) setOpenCategory(selected.id);
+    store.setCategory(category);
+    store.setSubCategory(subcategory);
+  };
+
+  return (
+    <div
+      id="mobile-search-options"
+      className={`mobile-panel mobile-search-options${open ? " catalog-mobile-open" : ""}`}
+    >
+      <form className="search-options-form" role="form" noValidate>
+        <div className="rbx-tabs-horizontal">
+          <ul id="horizontal-tabs" className="nav nav-tabs" role="tablist">
+            {[
+              ["category", "Category"],
+              ["filter", "Filter"],
+              ["sorting", "Sorting"],
+            ].map(([key, label]) => (
+              <li className={`rbx-tab${tab === key ? " active" : ""}`} key={key}>
+                <a
+                  href={`#${key}-tab`}
+                  className="rbx-tab-heading"
+                  onClick={(event) => {
+                    event.preventDefault();
+                    setTab(key);
+                  }}
+                >
+                  <span className="font-header-1">{label}</span>
+                </a>
+              </li>
+            ))}
+          </ul>
+          <div className="tab-content rbx-tab-content">
+            {tab === "category" && (
+              <div id="category-tab" className="section-content tab-pane active">
+                <ul id="mobile-category-panel-group" className="panel-group">
+                  {categories.map((item) => {
+                    const panelId = `mobile-category-${item.id}`;
+                    const hasChildren = item.children.length > 0;
+                    const expanded = openCategory === item.id;
+                    return (
+                      <li className="panel panel-default" key={item.id}>
+                        <a
+                          href={`#${panelId}`}
+                          className="panel-heading"
+                          role="tab"
+                          aria-expanded={expanded}
+                          onClick={(event) => {
+                            event.preventDefault();
+                            setOpenCategory(expanded ? null : item.id);
+                          }}
+                        >
+                          {item.id === 1 ? "All Categories" : item.name}
+                          {hasChildren && <span className="icon-down-16x16 arrow-icon" />}
+                        </a>
+                        {hasChildren && (
+                          <div
+                            id={panelId}
+                            className={`panel-collapse collapse${expanded ? " in show" : ""}`}
+                            role="tabpanel"
+                          >
+                            <ul>
+                              {item.children.map(([label, subcategory]) => (
+                                <li className="radio top-border" key={label}>
+                                  <input
+                                    id={`${panelId}-${label.replace(/\s+/g, "-")}`}
+                                    type="radio"
+                                    name="mobile-catalog-category"
+                                    onChange={() => selectCategory(item.api, subcategory)}
+                                  />
+                                  <label htmlFor={`${panelId}-${label.replace(/\s+/g, "-")}`}>
+                                    {label}
+                                  </label>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
+            )}
+            {tab === "filter" && (
+              <div id="filter-tab" className="section-content tab-pane active">
+                <CatalogFilters />
+              </div>
+            )}
+            {tab === "sorting" && (
+              <div id="sorting-tab" className="section-content tab-pane active">
+                <div className="font-header-2 filter-label">Sort By</div>
+                <ul>
+                  {[
+                    [0, "Relevance"],
+                    [100, "Most Favorited"],
+                    [101, "Bestselling"],
+                    [3, "Recently Updated"],
+                    [5, "Price (High to Low)"],
+                    [4, "Price (Low to High)"],
+                  ].map(([value, label]) => (
+                    <li className="radio top-border" key={value}>
+                      <input
+                        id={`mobile-sort-${value}`}
+                        type="radio"
+                        name="mobile-catalog-sort"
+                        checked={store.sort === value}
+                        onChange={() => store.setSort(value)}
+                      />
+                      <label htmlFor={`mobile-sort-${value}`}>{label}</label>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
+        </div>
+        <div className="button-container">
+          <button type="button" id="cancel-button" className="btn-control-lg" onClick={onClose}>
+            Cancel
+          </button>
+          <button type="button" className="btn-primary-lg apply-button" onClick={onClose}>
+            Apply
+          </button>
+        </div>
+      </form>
+    </div>
+  );
+};
+
+export { CatalogMobileSearchOptions };
 export default CatalogPageNavigation;

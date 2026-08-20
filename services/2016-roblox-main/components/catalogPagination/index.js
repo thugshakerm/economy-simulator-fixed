@@ -1,49 +1,48 @@
+import React from "react";
 import CatalogPageStore from "../../stores/catalogPage";
-import GenericPagination from "../genericPagination";
 
-/**
- * Catalog pagination component
- * @param {*} props 
- */
-const CatalogPagination = props => {
+const CatalogPagination = () => {
   const store = CatalogPageStore.useContainer();
-  const { limit, total, page } = store;
+  const pageCount = typeof store.total === "number"
+    ? Math.max(1, Math.ceil(store.total / store.limit))
+    : null;
+  const previousDisabled = store.page <= 1 || store.locked;
+  const nextDisabled = store.locked || (pageCount !== null && store.page >= pageCount);
 
-  let pageCount = typeof total === 'number' ? Math.ceil(total / limit) : null;
-  if (pageCount === 0) {
-    pageCount = 1;
-  }
-
-  const onClick = increment => {
-    return (e) => {
-      e.preventDefault();
-      if (store.locked) {
-        return;
-      }
-      let cursor = '';
-      if (increment === 1) {
-        if (pageCount !== null && page >= pageCount) return;
-        store.setPage(page + 1);
-        cursor = store.nextCursor;
-      } else if (increment === -1) {
-        if (page === 1) return;
-        store.setPage(page - 1);
-        cursor = store.previousCursor;
-      }
-      store.setCursor(cursor);
+  const move = (direction) => (event) => {
+    event.preventDefault();
+    if (direction < 0) {
+      if (previousDisabled) return;
+      store.setPage(store.page - 1);
+      store.setCursor(store.previousCursor || "");
+    } else {
+      if (nextDisabled) return;
+      store.setPage(store.page + 1);
+      store.setCursor(store.nextCursor || "");
     }
-  }
+  };
 
-
-  return <div className='row'>
-    <div className='col-6 col-lg-3 mx-auto'>
-      <GenericPagination
-        page={page}
-        pageCount={pageCount}
-        onClick={onClick}
-      />
+  return (
+    <div className="pager-holder-inner">
+      <ul className="pager">
+        <li className={`pager-prev${previousDisabled ? " disabled" : ""}`}>
+          <a href="#" onClick={move(-1)} aria-label="Previous page">
+            <span className="icon-back" />
+          </a>
+        </li>
+        <li>
+          <span>
+            Page {store.page}{pageCount !== null ? ` of ${pageCount.toLocaleString()}` : ""}
+          </span>
+        </li>
+        <li className={`pager-next${nextDisabled ? " disabled" : ""}`}>
+          <a href="#" onClick={move(1)} aria-label="Next page">
+            <span className="icon-next" />
+          </a>
+        </li>
+      </ul>
     </div>
-  </div>
-}
+  );
+};
 
 export default CatalogPagination;

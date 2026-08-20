@@ -21,7 +21,7 @@ export const getItemUrl = ({ assetId, name }) => {
   return `/catalog/${assetId}/${itemNameToEncodedName(name)}`;
 }
 
-export const searchCatalog = ({ category, subCategory, query, limit, cursor, sort, creatorType, creatorId }) => {
+export const searchCatalog = ({ category, subCategory, query, limit, cursor, sort, creatorType, creatorId, genres = [] }) => {
   let url = '/v1/search/items?category=' + category + '&limit=' + limit + '&sortType=' + sort;
   if (cursor) {
     url += '&cursor=' + encodeURIComponent(cursor);
@@ -31,6 +31,9 @@ export const searchCatalog = ({ category, subCategory, query, limit, cursor, sor
   }
   if (subCategory) {
     url += '&subcategory=' + encodeURIComponent(subCategory);
+  }
+  if (genres.length) {
+    url += '&genreType=' + encodeURIComponent(genres.join(','));
   }
   if (creatorType && creatorId) {
     url += '&creatorTargetId=' + creatorId +'&creatorType=' + creatorType;

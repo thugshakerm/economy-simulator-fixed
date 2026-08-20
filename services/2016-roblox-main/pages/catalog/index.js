@@ -1,63 +1,86 @@
-import React from "react";
-import { createUseStyles } from "react-jss";
-import AdBanner from "../../components/ad/adBanner";
-import CatalogFilters from "../../components/catalogFilters";
-import CatalogLegend from "../../components/catalogLegend";
+import Head from "next/head";
+import React, { useState } from "react";
 import CatalogPageInput from "../../components/catalogPageInput";
-import CatalogPageNavigation from "../../components/catalogPageNavigation";
+import CatalogPageNavigation, { CatalogMobileSearchOptions } from "../../components/catalogPageNavigation";
 import CatalogPageResults from "../../components/catalogPageResults";
 import CatalogPageStore from "../../stores/catalogPage";
 
-const useStyles = createUseStyles({
-  title: {
-    fontWeight: 700,
-    fontSize: '32px',
-    marginBottom: '12px',
-    color: '#343434',
-  },
-  catalogContainer: {
-    backgroundColor: '#fff',
-    padding: '2px 4px',
-  },
-})
+const CatalogPage = () => {
+  const [mobileOptionsOpen, setMobileOptionsOpen] = useState(false);
 
-const CatalogPage = props => {
-  const s = useStyles();
-  return <CatalogPageStore.Provider>
-      <div className='container mt-4'>
-        <AdBanner/>
-        <div className={s.catalogContainer}>
-          <div className='row mt-2'>
-            <div className='col-12 col-md-4 col-lg-2'>
-              <h1 className={s.title}>Catalog</h1>
-            </div>
-            <div className='col-12 col-md-8 col-lg-10'>
-              <CatalogPageInput/>
-            </div>
-          </div>
-          <div className='row'>
-            <div className='col-12 col-md-4 col-lg-2'>
-              <div className='divider-right'>
-                <div className='pe-2'>
-                  <CatalogPageNavigation/>
-                  <CatalogFilters/>
-                  <CatalogLegend/>
+  return (
+    <CatalogPageStore.Provider>
+      <Head>
+        <meta name="description" content="Browse the Roblox catalog." />
+      </Head>
+
+      <div className="catalog-standalone rbx-body light-theme gotham-font">
+        <div className="container-main full-screen touch catalog-shell">
+          <div className="content">
+            <div className="catalog-container">
+              <div id="catalog-container">
+                <div className="catalog-page">
+                  <div
+                    id="catalog-content"
+                    className="clearfix catalog-content catalog-full-screen"
+                  >
+                    <div id="main-view">
+                      <div className="search-bars">
+                        <h1 className="heading">
+                          <a href="/catalog">Catalog</a>
+                        </h1>
+                        <a className="btn-growth-md buy-robux" href="/upgrades/robux?ctx=catalogNew">
+                          Buy Robux
+                        </a>
+                        <CatalogPageInput onOpenMobileOptions={setMobileOptionsOpen} />
+                      </div>
+
+                      <CatalogPageResults />
+                      <CatalogMobileSearchOptions
+                        open={mobileOptionsOpen}
+                        onClose={() => setMobileOptionsOpen(false)}
+                      />
+                    </div>
+
+                    <CatalogPageNavigation />
+                  </div>
                 </div>
               </div>
             </div>
-            <div className='col-12 col-md-8 col-lg-10'>
-              <CatalogPageResults/>
-            </div>
           </div>
         </div>
+        <footer className="footer">
+          <ul className="row footer-links">
+            {[
+              ["About Us", "/info/about-us"],
+              ["Jobs", "/info/jobs"],
+              ["Blog", "/info/blog"],
+              ["Parents", "/info/parents"],
+              ["Help", "/info/help"],
+              ["Terms", "/info/terms"],
+              ["Privacy", "/info/privacy"],
+            ].map(([label, href]) => (
+              <li className="footer-link" key={label}>
+                <a className="text-footer-nav" href={href}>{label}</a>
+              </li>
+            ))}
+          </ul>
+          <div className="row copyright-container">
+            <div className="col-sm-6 col-md-3" />
+            <div className="col-sm-12">
+              <p className="text-footer footer-note">
+                ©2020 Roblox Corporation. Roblox, the Roblox logo and Powering Imagination are among our registered and unregistered trademarks in the U.S. and other countries.
+              </p>
+            </div>
+          </div>
+        </footer>
       </div>
     </CatalogPageStore.Provider>
-}
+  );
+};
 
-CatalogPage.getInitialProps = () => {
-  return {
-    title: 'Catalog - ROBLOX',
-  }
-}
+CatalogPage.getInitialProps = () => ({
+  title: "Catalog - ROBLOX",
+});
 
 export default CatalogPage;
