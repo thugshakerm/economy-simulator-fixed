@@ -124,6 +124,25 @@ const timeOptions = [
   [2, "Past Day"],
 ];
 
+const categoryLabel = (category) => {
+  switch ((category || "").toLowerCase()) {
+    case "all":
+      return "All Categories";
+    case "null":
+      return "Clothing";
+    case "bodyparts":
+      return "Body Parts";
+    case "gear":
+      return "Gear";
+    case "collectibles":
+      return "Collectibles";
+    case "featured":
+      return "Featured";
+    default:
+      return category || "Featured";
+  }
+};
+
 const CatalogSearchMenu = ({ store, open, setOpen }) => (
   <div className="input-group-btn">
     <button
@@ -134,7 +153,7 @@ const CatalogSearchMenu = ({ store, open, setOpen }) => (
       onClick={() => setOpen(!open)}
     >
       <span className="text-overflow rbx-selection-label">
-        {store.category || "Featured"}
+        {categoryLabel(store.category)}
       </span>
       <span className="icon-down-16x16" />
     </button>
@@ -749,7 +768,10 @@ const CatalogResults = () => {
   const loaded = store.results !== null;
   const [timeSort, setTimeSort] = useState(0);
   const showTimeSort = [100, 101, 3].includes(store.sort);
-  const title = store.category === "Featured" ? "Featured Items on Roblox" : (store.category || "Featured");
+  const currentCategory = categoryLabel(store.category);
+  const title = store.category === "Featured"
+    ? "Featured Items on Roblox"
+    : `${currentCategory}${store.subCategory ? ` - ${store.subCategory}` : ""}`;
 
   return (
     <div className="catalog-results">
@@ -760,7 +782,7 @@ const CatalogResults = () => {
       <div>
         <div className="breadcrumbs">
           <ul className="breadcrumb-container">
-            <li><a href="#" className="text-link breadcrumb-link" onClick={(event) => event.preventDefault()}>{store.category || "Featured"}</a></li>
+            <li><a href="#" className="text-link breadcrumb-link" onClick={(event) => event.preventDefault()}>{currentCategory}</a></li>
             {store.subCategory && <li><span className="icon-right-16x16" /><a href="#" className="text-link breadcrumb-link" onClick={(event) => event.preventDefault()}>{store.subCategory}</a></li>}
           </ul>
           <div className="sort-menus">
@@ -806,8 +828,13 @@ const CatalogPage = () => {
       <Head>
         {referenceStylesheets.map((href) => <link rel="stylesheet" href={href} key={href} />)}
         <style>{`
-          body { min-width: 320px; }
-          .catalog-one-file-page { margin-top: 0; }
+          body { margin: 0; min-width: 320px; min-height: 100vh; width: 100%; font-family: 'Source Sans Pro', Arial, Helvetica, sans-serif; font-size: 14px; }
+          .navbar-wrapper-main .navbar { min-height: 0; margin-bottom: 0; border: 0; border-radius: 0; }
+          .navbar-wrapper-main .navbar > .container { width: 100%; max-width: 100% !important; padding-left: 12px; padding-right: 12px; }
+          .navbar-wrapper-main .navbar .row { margin-left: -12px; margin-right: -12px; }
+          .navbar-wrapper-main .navbar [class*="col-"] { position: relative; min-height: 1px; padding-left: 12px; padding-right: 12px; }
+          .navbar-wrapper-main .navbar input.form-control { margin: 0; }
+          .catalog-one-file-page { margin-top: 0; font-family: 'HCo Gotham SSm', 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 16px; }
           .catalog-one-file-page { min-height: 100vh; background: #e3e3e3; color: #393b3d; }
           .catalog-one-file-page .content { max-width: 1240px; margin: 0 auto; padding: 0 12px 40px; background: transparent; }
           .catalog-one-file-page .search-bars { min-height: 54px; }
