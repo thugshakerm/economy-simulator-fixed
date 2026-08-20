@@ -24,6 +24,7 @@ const catalogCss = `
           .navbar-wrapper-main .navbar input.form-control { margin: 0; }
           .catalog-one-file-page { margin-top: 0; font-family: 'HCo Gotham SSm', 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 16px; }
           .catalog-one-file-page { min-height: 100vh; background: #e3e3e3; color: #393b3d; }
+          .catalog-one-file-page .container-main { margin-top: 0; }
           .catalog-one-file-page .content { max-width: 1240px; margin: 0 auto; padding: 0 12px 40px; background: transparent; }
           .catalog-one-file-page .search-bars { min-height: 54px; }
           .catalog-one-file-page .catalog-desktop-search .search-container { display: block; }
@@ -880,7 +881,7 @@ const CatalogResults = () => {
     <div className="catalog-results">
       <h3 className="featured-items-heading">
         <span className="line-height">{title}</span>
-        <a className="btn-growth-md buy-robux" href="/upgrades/robux?ctx=catalogNew">Buy Robux</a>
+        <a className="btn-growth-md buy-robux" href="/transactions">Buy Robux</a>
       </h3>
       <div>
         <div className="breadcrumbs">
@@ -950,7 +951,7 @@ const CatalogContent = () => {
                     <div id="main-view">
                       <div className="search-bars">
                         <h1 className="heading"><a href="/catalog">Catalog</a></h1>
-                        <a className="btn-growth-md buy-robux" href="/upgrades/robux?ctx=catalogNew">Buy Robux</a>
+                        <a className="btn-growth-md buy-robux" href="/transactions">Buy Robux</a>
                         <CatalogSearch onOpenMobile={setMobileOptionsOpen} />
                       </div>
                       <CatalogResults />
@@ -985,6 +986,15 @@ const CatalogPage = () => {
       <>
         <Head>
           <meta name="description" content="Browse the Roblox catalog." />
+          <style>{`
+            body { background: #e3e3e3 !important; }
+            #__next > div > .navbar-wrapper-main { margin-bottom: 0 !important; }
+            #__next > div > [class^="fakeAlert-"] { display: none !important; height: 0 !important; }
+            .catalog-host { display: block; min-height: 100vh; padding-top: 40px; background: #e3e3e3; }
+            @media (max-width: 991px) {
+              .catalog-host { padding-top: 98px; }
+            }
+          `}</style>
         </Head>
         <div ref={host} className="catalog-host">
           {shadow && createPortal(<CatalogContent />, shadow)}
