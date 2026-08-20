@@ -57,7 +57,7 @@ const actualHandler = async (req, res) => {
       }
       requestHeaders[key] = req.headers[key];
     }
-    const result = await axios.request({
+    const sendRequest = () => axios.request({
       method: req.method,
       url: fullUrl,
       data: req.body,
@@ -65,6 +65,12 @@ const actualHandler = async (req, res) => {
       headers: requestHeaders,
       validateStatus: () => true,
     });
+    let result = await sendRequest();
+    const csrfToken = result.headers['x-csrf-token'];
+    if (result.status === 403 && typeof csrfToken === 'string' && csrfToken.length > 0) {
+      requestHeaders['x-csrf-token'] = csrfToken;
+      result = await sendRequest();
+    }
     for (const item of Object.getOwnPropertyNames(result.headers)) {
       let value = result.headers[item];
       if (item === 'set-cookie') {

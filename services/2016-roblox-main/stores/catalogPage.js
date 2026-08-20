@@ -105,9 +105,13 @@ const CatalogPageStore = createContainer(() => {
         if (response.data.length === 0) {
           return response;
         }
-        const assetDetails = await getItemDetails(response.data.map(v => v.id));
-        const data = response.data.map(item => assetDetails.data.data.find(v => v.id === item.id)).filter(Boolean);
-        return { ...response, data };
+        try {
+          const assetDetails = await getItemDetails(response.data.map(v => v.id));
+          const data = response.data.map(item => assetDetails.data.data.find(v => v.id === item.id)).filter(Boolean);
+          return { ...response, data };
+        } catch (error) {
+          return response;
+        }
       })
       .then(response => {
         if (cancelled) return;
