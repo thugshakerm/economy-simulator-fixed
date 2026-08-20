@@ -24,9 +24,10 @@ const catalogCss = `
           .navbar-wrapper-main .navbar [class*="col-"] { position: relative; min-height: 1px; padding-left: 12px; padding-right: 12px; }
           .navbar-wrapper-main .navbar input.form-control { margin: 0; }
           .catalog-one-file-page { margin-top: 0; font-family: 'HCo Gotham SSm', 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 16px; }
-          .catalog-one-file-page { min-height: 100vh; background: #fff; color: #393b3d; }
+          .catalog-one-file-page { min-height: 100vh; background: #fff !important; color: #393b3d; }
+          .catalog-one-file-page .container-main, .catalog-one-file-page .content, .catalog-one-file-page .catalog-container, .catalog-one-file-page #catalog-container, .catalog-one-file-page .catalog-page { background: #fff !important; }
           .catalog-one-file-page .container-main { margin-top: 0; }
-          .catalog-one-file-page .content { max-width: 1240px; margin: 0 auto; padding: 0 12px 40px; background: transparent; }
+          .catalog-one-file-page .content { max-width: 1240px; margin: 0 auto; padding: 0 12px 40px; }
           .catalog-one-file-page .catalog-ad img { display: block; width: 100%; height: auto; margin: 0 auto; }
           .catalog-one-file-page .catalog-ad { min-height: 90px; }
           .catalog-one-file-page .search-bars { min-height: 54px; }
